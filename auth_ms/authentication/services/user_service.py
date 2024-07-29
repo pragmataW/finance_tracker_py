@@ -1,6 +1,7 @@
-from authentication.repo import UserRepo
 from authentication.exceptions import UsernameAlreadyExists
 from authentication.exceptions import EmailAlreadyExists
+from authentication.exceptions import WrongVerificationCode
+from authentication.repo import UserRepo
 from authentication.pkg import Encryptor
 from authentication.pkg import EmailSender
 from authentication.dto import Mail
@@ -17,18 +18,18 @@ class UserService:
         self.encryptor = Encryptor()
         self.emailSender = EmailSender()
     
-    def RegisterUser(self, username: str, password: str, email: str):
+    def registerUser(self, username: str, password: str, email: str):
         usernameCheck = self.repo.checkCredentialsByUsername(username)
         if usernameCheck.count() > 0:
             raise UsernameAlreadyExists("user already exists")
 
-        emailCheck = self.repo.checkCredentailsByEmail(email)
+        emailCheck = self.repo.checkCredentialsByEmail(email)
         if emailCheck.count() > 0:
             raise EmailAlreadyExists("email already exists")
         
         encryptedPass = self.encryptor.encrypt(password)
         verificationCode = self.__createVerificationCode()
-        user = self.repo.CreateUser(user_name = username, password = encryptedPass, email=email, is_verified=False, verification_code=verificationCode)
+        self.repo.createUser(user_name = username, password = encryptedPass, email=email, is_verified=False, verification_code=verificationCode)
 
         mail = Mail(
             toMail=email,
@@ -38,6 +39,16 @@ class UserService:
         )
 
         self.emailSender.sendMail(mail=mail)
-    
+
+    def verifyUser(self, userName: str, verificationCode: int):
+        if verificationCode == self.repo.getVerificationCode(user_name=userName):
+            self.repo.setIsVerified(user_name=userName, is_verified=True)
+        else:
+            raise WrongVerificationCode("wrong verification code")
+
+
+    def isVerified(self, userName: str):
+        return self.repo.getIsVerified(user_name=userName)
+
     def __createVerificationCode(self) -> int:
         return randint(100000, 999999)

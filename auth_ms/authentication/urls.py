@@ -17,7 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from authentication.views import UserView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/add/', UserView.AddUser),
+    path('user/verify/', UserView.VerifyUser),
 ]
