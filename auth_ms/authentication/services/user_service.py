@@ -51,6 +51,9 @@ class UserService:
         result = self.repo.checkCredentialsByUsername(username=userName)
         if result.count() == 0:
             raise UserNotFound("user not found")
+        mailResult = self.repo.checkCredentialsByEmail(email=email)
+        if mailResult.count() == 0:
+            raise UserNotFound("user not found")
 
         if self.repo.getIsVerified(user_name=userName):
             if result.exists():
