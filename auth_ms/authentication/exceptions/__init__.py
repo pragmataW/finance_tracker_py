@@ -2,3 +2,6 @@ from .username_already_exists import UsernameAlreadyExists
 from .password_dont_match import PassworDontMatch
 from .email_already_exists import EmailAlreadyExists
 from .wrong_verification_code import WrongVerificationCode 
+from .user_not_verified import UserNotVerified
+from .password_or_mail_dont_match import PasswordOrMailDontMatch
+from .user_not_found import UserNotFound

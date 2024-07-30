@@ -1,10 +1,11 @@
-from django.http import JsonResponse
+from django.http import JsonResponse,  HttpResponse
 from authentication.exceptions import WrongVerificationCode
 from authentication.services import UserService
-from authentication.exceptions import UsernameAlreadyExists, EmailAlreadyExists
+from authentication.exceptions import UsernameAlreadyExists, EmailAlreadyExists, PasswordOrMailDontMatch, UserNotVerified, UserNotFound
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+import datetime
 
 class UserView:
     userService = UserService()
@@ -12,7 +13,7 @@ class UserView:
     @staticmethod
     @csrf_exempt
     @require_http_methods(['POST'])
-    def AddUser(request):
+    def addUser(request):
         try:
             if not request.body:
                 return JsonResponse({"error": "Request body is empty."}, status=400)
@@ -39,7 +40,7 @@ class UserView:
     @staticmethod
     @csrf_exempt
     @require_http_methods(['POST'])
-    def VerifyUser(request):
+    def verifyUser(request):
         try:
             if not request.body:
                 return JsonResponse({"error": "Request body is empty."}, status=400)
@@ -60,4 +61,46 @@ class UserView:
             return JsonResponse({"error": e.message}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+        
+    @staticmethod
+    @csrf_exempt
+    @require_http_methods(['POST'])
+    def loginUser(request):
+        try:
+            if not request.body:
+                return JsonResponse({"error": "Request body is empty."}, status=400)
+            
+            body = json.loads(request.body.decode('utf-8'))
+            user_name = body.get('user_name')
+            email = body.get('email')
+            password = body.get('password')
 
+            if not user_name or not email or not password:
+                return JsonResponse({'error': 'All fields are required'}, status=400)
+            
+            jwt = UserView.userService.loginUser(userName=user_name, email=email, password=password)
+
+            response = HttpResponse(
+                content=json.dumps({"message":"login successful"}),
+                content_type="application/json"
+            )
+
+            response.set_cookie(
+                key='Authentication',
+                value=jwt,
+                expires=datetime.datetime.now() + datetime.timedelta(days=3),
+                samesite='Lax'
+            )
+
+            return response
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+        except PasswordOrMailDontMatch as e:
+            return JsonResponse({"error": e.message}, status=400)
+        except UserNotVerified as e:
+            return JsonResponse({"error": e.message}, status=401)
+        except UserNotFound as e:
+            return JsonResponse({"error": e.message}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)

@@ -1,22 +1,23 @@
 from authentication.exceptions import UsernameAlreadyExists
 from authentication.exceptions import EmailAlreadyExists
 from authentication.exceptions import WrongVerificationCode
+from authentication.exceptions import UserNotVerified
+from authentication.exceptions import PasswordOrMailDontMatch
+from authentication.exceptions import UserNotFound
 from authentication.repo import UserRepo
 from authentication.pkg import Encryptor
 from authentication.pkg import EmailSender
 from authentication.dto import Mail
+from authentication.pkg import JwtGenerator
 
 from random import randint
 
 class UserService: 
-    repo: UserRepo
-    encryptor: Encryptor
-    emailSender: EmailSender
-
     def __init__(self):
         self.repo = UserRepo()
         self.encryptor = Encryptor()
         self.emailSender = EmailSender()
+        self.jwtGenerator = JwtGenerator()
     
     def registerUser(self, username: str, password: str, email: str):
         usernameCheck = self.repo.checkCredentialsByUsername(username)
@@ -46,9 +47,21 @@ class UserService:
         else:
             raise WrongVerificationCode("wrong verification code")
 
+    def loginUser(self, userName: str, email: str, password: str) -> str:
+        result = self.repo.checkCredentialsByUsername(username=userName)
+        if result.count() == 0:
+            raise UserNotFound("user not found")
 
-    def isVerified(self, userName: str):
-        return self.repo.getIsVerified(user_name=userName)
+        if self.repo.getIsVerified(user_name=userName):
+            if result.exists():
+                user = result.first()
+                decodedPass = self.encryptor.decrypt(user.password)
+                if user.email == email and password == decodedPass:
+                    return self.jwtGenerator.generateJwt(username=userName)
+                else:
+                    raise PasswordOrMailDontMatch("password or mail does not match")
+        else:
+            raise UserNotVerified("user not verified")
 
     def __createVerificationCode(self) -> int:
         return randint(100000, 999999)

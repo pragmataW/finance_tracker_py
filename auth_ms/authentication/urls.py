@@ -20,6 +20,7 @@ from authentication.views import UserView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('user/add/', UserView.AddUser),
-    path('user/verify/', UserView.VerifyUser),
+    path('user/add/', UserView.addUser),
+    path('user/verify/', UserView.verifyUser),
+    path('user/login/', UserView.loginUser),
 ]
