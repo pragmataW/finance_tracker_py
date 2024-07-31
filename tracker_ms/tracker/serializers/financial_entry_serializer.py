@@ -16,15 +16,15 @@ class FinancialEntrySerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Miktar pozitif bir sayı olmalıdır.")
+            raise serializers.ValidationError("amount must be positive number")
         return value
 
     def validate_target_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Hedef miktar pozitif bir sayı olmalıdır.")
+            raise serializers.ValidationError("target amount must be positive number")
         return value
 
     def validate_title(self, value):
         if len(value) < 2:
-            raise serializers.ValidationError("Başlık en az 2 karakter olmalıdır.")
+            raise serializers.ValidationError("title must be at least 2 character")
         return value
