@@ -17,7 +17,7 @@ class TrackerRepo:
                     title=financialEntry.title
                 )
         except ObjectDoesNotExist:
-            raise ValueError(f"Category with id {financialEntry.category_id} does not exist.")
+            raise ValueError(f"Category with id {financialEntry.categoryID} does not exist.")
         except Exception as e:
             raise RuntimeError(f"An error occurred while creating financial entry: {str(e)}")
 
@@ -36,13 +36,13 @@ class TrackerRepo:
             raise RuntimeError(f"An error occurred while fetching financial entries: {str(e)}")
 
     def getTotalTargetAmount():
-        total = FinancialEntry.objects.aggregate(Sum('target_amount'))['target_amount_sum']
+        total = FinancialEntry.objects.aggregate(Sum('target_amount'))['target_amount__sum']
         if total is not None:
             return total
         return 0
 
     def getTotalAmount():
-        total = FinancialEntry.objects.aggregate(Sum('amount'))['amount_sum']
+        total = FinancialEntry.objects.aggregate(Sum('amount'))['amount__sum']
         if total is not None:
             return total
         return 0
@@ -51,7 +51,7 @@ class TrackerRepo:
         try:
             entry = FinancialEntry.objects.get(id=financialEntryID)
             entry.target_amount = newAmount
-            entry.save(update_fields=['amount'])
+            entry.save(update_fields=['target_amount'])
         except ObjectDoesNotExist:
             raise ValueError(f"FinancialEntry with id {financialEntryID} does not exist.")
         except Exception as e:
@@ -60,8 +60,8 @@ class TrackerRepo:
     def changeAmount(financialEntryID: int, newAmount):
         try:
             entry = FinancialEntry.objects.get(id=financialEntryID)
-            entry.target_amount = newAmount
-            entry.save(update_fields=['target_amount'])
+            entry.amount = newAmount
+            entry.save(update_fields=['amount'])
         except ObjectDoesNotExist:
             raise ValueError(f"FinancialEntry with id {financialEntryID} does not exist.")
         except Exception as e:
