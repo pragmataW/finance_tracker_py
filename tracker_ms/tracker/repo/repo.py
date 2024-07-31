@@ -4,10 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
 class TrackerRepo:
-    def addCategory(category: CategoryDTO):
+    def addCategory(self, category: CategoryDTO):
         Category.objects.create(name=category.name, type=category.type)
 
-    def addFinancialEntry(financialEntry: FinancialEntryDTO):
+    def addFinancialEntry(self, financialEntry: FinancialEntryDTO):
         try:
             FinancialEntry.objects.create(
                     user_name=financialEntry.userName,
@@ -21,11 +21,11 @@ class TrackerRepo:
         except Exception as e:
             raise RuntimeError(f"An error occurred while creating financial entry: {str(e)}")
 
-    def getAllCategories():
+    def getAllCategories(self):
         allCatagories = Category.objects.all()
         return allCatagories
 
-    def getFinancialEntryByCategory(categoryID: int):
+    def getFinancialEntryByCategory(self, categoryID: int):
         try:
             category = Category.objects.get(id=categoryID)
             entries = FinancialEntry.objects.filter(category=category)
@@ -35,19 +35,19 @@ class TrackerRepo:
         except Exception as e:
             raise RuntimeError(f"An error occurred while fetching financial entries: {str(e)}")
 
-    def getTotalTargetAmount():
+    def getTotalTargetAmount(self):
         total = FinancialEntry.objects.aggregate(Sum('target_amount'))['target_amount__sum']
         if total is not None:
             return total
         return 0
 
-    def getTotalAmount():
+    def getTotalAmount(self):
         total = FinancialEntry.objects.aggregate(Sum('amount'))['amount__sum']
         if total is not None:
             return total
         return 0
 
-    def changeTargetAmount(financialEntryID: int, newAmount):
+    def changeTargetAmount(self, financialEntryID: int, newAmount: int):
         try:
             entry = FinancialEntry.objects.get(id=financialEntryID)
             entry.target_amount = newAmount
@@ -57,7 +57,7 @@ class TrackerRepo:
         except Exception as e:
             raise RuntimeError(f"An error occurred while updating the entry: {str(e)}")
 
-    def changeAmount(financialEntryID: int, newAmount):
+    def changeAmount(self, financialEntryID: int, newAmount: int):
         try:
             entry = FinancialEntry.objects.get(id=financialEntryID)
             entry.amount = newAmount
